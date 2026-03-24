@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Intellector</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+</head>
+<body data-page="chat">
+
+    <!-- LOADING SCREEN -->
+    <div class="fullscreen" id="loadingScreen">
+        <div class="loading-box">
+            <div class="loading-logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#10a37f" stroke-width="1.5" width="48" height="48">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                </svg>
+            </div>
+            <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+            <p>Initializing Intellector...</p>
+        </div>
+    </div>
+
+    <!-- CHAT APP -->
+    <div class="chat-app" id="chatApp" style="display: none;">
+
+        <!-- SIDEBAR OVERLAY (mobile) -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-brand">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#10a37f" stroke-width="1.5" width="22" height="22">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                    </svg>
+                    <span>Intellector</span>
+                </div>
+                <button class="new-chat-button" onclick="newChat()" title="New Chat">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                        <path d="M12 5v14M5 12h14"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="sidebar-search">
+                <input type="text" placeholder="Search chats..." id="chatSearch" oninput="filterChats(this.value)">
+            </div>
+
+            <div class="sidebar-list" id="chatList">
+                <!-- Chat list loads here -->
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="user-profile" onclick="toggleUserMenu()">
+                    <div class="user-avatar" id="userAvatar">
+                        <span>U</span>
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name" id="userName">User</div>
+                        <div class="user-email" id="userEmail">loading...</div>
+                    </div>
+                    <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+                <div class="user-menu" id="userMenu">
+                    <button onclick="toggleTheme()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        Toggle Theme
+                    </button>
+                    <button onclick="logout()" class="danger">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"></path></svg>
+                        Log out
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MOBILE HEADER -->
+        <button class="mobile-menu-button" onclick="toggleSidebar()" id="mobileMenuBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+
+        <!-- MAIN AREA -->
+        <main class="main-area">
+
+            <!-- WELCOME SCREEN -->
+            <div class="welcome-screen" id="welcomeScreen">
+                <div class="welcome-content">
+                    <div class="welcome-logo">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" width="64" height="64">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="#10a37f" stroke-width="1.5"></path>
+                            <path d="M2 17l10 5 10-5" stroke="#10a37f" stroke-width="1.5" opacity="0.7"></path>
+                            <path d="M2 12l10 5 10-5" stroke="#10a37f" stroke-width="1.5" opacity="0.4"></path>
+                        </svg>
+                    </div>
+                    <h1 class="welcome-title">How can I help you today?</h1>
+                    <p class="welcome-subtitle">I'm Intellector — your AI-powered academic assistant</p>
+
+                    <div class="quick-cards">
+                        <div class="quick-card" onclick="quickStart('Explain the concept of neural networks in simple terms')">
+                            <div class="card-icon-wrap"><span class="card-icon">🧠</span></div>
+                            <div class="card-text">
+                                <strong>Explain a Concept</strong>
+                                <small>Neural networks in simple terms</small>
+                            </div>
+                        </div>
+                        <div class="quick-card" onclick="quickStart('Write a Python function to sort a list using merge sort with comments')">
+                            <div class="card-icon-wrap"><span class="card-icon">💻</span></div>
+                            <div class="card-text">
+                                <strong>Write Code</strong>
+                                <small>Merge sort in Python</small>
+                            </div>
+                        </div>
+                        <div class="quick-card" onclick="quickStart('Help me write a professional email to my professor requesting a deadline extension')">
+                            <div class="card-icon-wrap"><span class="card-icon">✍️</span></div>
+                            <div class="card-text">
+                                <strong>Draft an Email</strong>
+                                <small>Request deadline extension</small>
+                            </div>
+                        </div>
+                        <div class="quick-card" onclick="quickStart('Compare and contrast SQL vs NoSQL databases in a table format')">
+                            <div class="card-icon-wrap"><span class="card-icon">📊</span></div>
+                            <div class="card-text">
+                                <strong>Compare Topics</strong>
+                                <small>SQL vs NoSQL databases</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MESSAGES CONTAINER -->
+            <div class="messages-container" id="messagesContainer" style="display: none;">
+                <!-- Messages appear here -->
+            </div>
+
+            <!-- INPUT AREA -->
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <textarea
+                        id="messageInput"
+                        class="message-input"
+                        placeholder="Message Intellector..."
+                        onkeydown="handleKeyDown(event)"
+                        oninput="autoResizeInput(this)"
+                        autocomplete="off"
+                        rows="1"
+                    ></textarea>
+                    <button class="send-button" onclick="sendMessage()" id="sendBtn" title="Send message">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                </div>
+                <p class="input-footer">Intellector uses Gemini AI · Responses may be inaccurate · <a href="#" onclick="toggleTheme(); return false;">Toggle theme</a></p>
+            </div>
+        </main>
+    </div>
+
+    <!-- FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+    <!-- APP -->
+    <script src="app.js"></script>
+    <script>
+        // Search/filter chats
+        function filterChats(query) {
+            var items = document.querySelectorAll('.chat-list-item');
+            query = query.toLowerCase();
+            items.forEach(function(item) {
+                var title = item.querySelector('.chat-list-title').textContent.toLowerCase();
+                item.style.display = title.includes(query) ? 'flex' : 'none';
+            });
+        }
+
+        // User menu toggle
+        function toggleUserMenu() {
+            var menu = document.getElementById('userMenu');
+            menu.classList.toggle('visible');
+        }
+
+        // Close user menu when clicking outside
+        document.addEventListener('click', function(e) {
+            var menu = document.getElementById('userMenu');
+            var profile = document.querySelector('.user-profile');
+            if (menu && profile && !profile.contains(e.target) && !menu.contains(e.target)) {
+                menu.classList.remove('visible');
+            }
+        });
+    </script>
+</body>
+</html>
