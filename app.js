@@ -13,7 +13,7 @@ var CONFIG = {
     FIREBASE_STORAGE_BUCKET: "intellector-8cf2d.firebasestorage.app",
     FIREBASE_MESSAGING_SENDER_ID: "381231220205",
     FIREBASE_APP_ID: "1:381231220205:web:397c5bb41c20b7b503d3e4",
-    GEMINI_API_KEY: "AIzaSyBNaqFIVkSoOEB8x07mzAAkElxbMnyxRaA",
+    GEMINI_API_KEY: "AIzaSyDR_LoETO7sxXvZDrvkHBWwGefZagi5c38",
 
     // ═══ CUSTOM RULES — Edit these to control AI behavior ═══
     SYSTEM_PROMPT: `You are Intellector, an advanced AI academic assistant built as a college innovation project.
