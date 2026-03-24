@@ -7,12 +7,12 @@
 // ═══════════════════════════════════════════════════════════════
 
 var CONFIG = {
-    FIREBASE_API_KEY: "AIzaSyBfzFKgfyHof1lx_m7WHhf5C1v1T8-9aqs",
-    FIREBASE_AUTH_DOMAIN: "intellector-cfcf9.firebaseapp.com",
-    FIREBASE_PROJECT_ID: "intellector-cfcf9",
-    FIREBASE_STORAGE_BUCKET: "intellector-cfcf9.firebasestorage.app",
-    FIREBASE_MESSAGING_SENDER_ID: "929985485006",
-    FIREBASE_APP_ID: "1:929985485006:web:91b5badf4ae86d03df189f",
+    FIREBASE_API_KEY: "AIzaSyDUOZvp58xhnXW2CXy8NVxU5x8QPPok3j4",
+    FIREBASE_AUTH_DOMAIN: "intellector-8cf2d.firebaseapp.com",
+    FIREBASE_PROJECT_ID: "intellector-8cf2d",
+    FIREBASE_STORAGE_BUCKET: "intellector-8cf2d.firebasestorage.app",
+    FIREBASE_MESSAGING_SENDER_ID: "381231220205",
+    FIREBASE_APP_ID: "1:381231220205:web:397c5bb41c20b7b503d3e4",
     GEMINI_API_KEY: "AIzaSyBNaqFIVkSoOEB8x07mzAAkElxbMnyxRaA",
 
     // ═══ CUSTOM RULES — Edit these to control AI behavior ═══
