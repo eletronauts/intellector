@@ -16,19 +16,7 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 // ═══════════════════════════════════════
 
 // CORS - Allow your frontend domains
-app.use(cors({
-    origin: [
-        'https://intellector-8cf2d.web.app',
-        'https://intellector-8cf2d.firebaseapp.com',
-        'http://localhost:5500',
-        'https://intellector.vercel.app',
-        'http://127.0.0.1:5500',
-        'http://localhost:3001',
-        'null' // for local file:// testing
-    ],
-    methods: ['POST', 'GET'],
-    allowedHeaders: ['Content-Type']
-}));
+app.use(cors());
 
 app.use(express.json({ limit: '10mb' }));
 
