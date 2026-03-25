@@ -1,10 +1,7 @@
-// ═══════════════════════════════════════════════════════════════
-//
-//   INTELLECTOR — COMPLETE APPLICATION (UPGRADED)
-//
-//   ⚠️ EDIT LINES 10-21 WITH YOUR OWN KEYS ⚠️
-//
-// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// INTELLECTOR — app.js (v3.0 — Secured Backend Version)
+// Compatible with existing index.html, chat.html, style.css
+// ═══════════════════════════════════════════════════════════
 
 var CONFIG = {
     FIREBASE_API_KEY: "AIzaSyDUOZvp58xhnXW2CXy8NVxU5x8QPPok3j4",
@@ -14,30 +11,36 @@ var CONFIG = {
     FIREBASE_MESSAGING_SENDER_ID: "381231220205",
     FIREBASE_APP_ID: "1:381231220205:web:397c5bb41c20b7b503d3e4",
 
-    // ═══ REMOVED: No more Gemini API key in frontend! ═══
-    // GEMINI_API_KEY: "..." ← DELETE THIS LINE
+    // ═══ SECURE: API key is now on backend server ═══
+    // GEMINI_API_KEY is REMOVED from frontend
+    // Instead we call our own backend which has the key safely
 
-    // ═══ NEW: Your backend URL ═══
-    BACKEND_URL: "https://intellector-backend.onrender.com",
+    // ═══ YOUR BACKEND URL (Update after deploying to Render) ═══
+    BACKEND_URL: "https://intellector.onrender.com",
+    // For local testing use: "http://localhost:3000"
 
-    SYSTEM_PROMPT: `You are Intellector, an advanced AI academic assistant built as a college innovation project.
+    // ═══ CUSTOM RULES — Edit these to control AI behavior ═══
+    SYSTEM_PROMPT: "You are Intellector, an advanced AI academic assistant built as a college innovation project.\n\nRULES YOU MUST FOLLOW:\n1. Always provide accurate, well-structured answers.\n2. Use markdown formatting: headings, bold, bullet points, code blocks.\n3. If a question is about coding, always include a working code example.\n4. If you are not confident about factual data (dates, statistics, recent events), say \"I'm not fully certain about this — please verify from a trusted source.\"\n5. Never generate harmful, misleading, or unethical content.\n6. For math/science questions, show step-by-step solutions.\n7. Keep responses concise but thorough — aim for clarity over length.\n8. If the user asks \"who are you\" or \"what can you do\", introduce yourself as Intellector.\n9. Format lists and comparisons as tables when appropriate.\n10. Always end complex explanations with a brief summary.",
 
-RULES YOU MUST FOLLOW:
-1. Always provide accurate, well-structured answers.
-2. Use markdown formatting: headings, bold, bullet points, code blocks.
-3. If a question is about coding, always include a working code example.
-4. If you are not confident about factual data (dates, statistics, recent events), say "I'm not fully certain about this — please verify from a trusted source."
-5. Never generate harmful, misleading, or unethical content.
-6. For math/science questions, show step-by-step solutions.
-7. Keep responses concise but thorough — aim for clarity over length.
-8. If the user asks "who are you" or "what can you do", introduce yourself as Intellector.
-9. Format lists and comparisons as tables when appropriate.
-10. Always end complex explanations with a brief summary.`,
-
+    // Response verification keywords — if response contains these, flag it
     BLOCKED_KEYWORDS: ["I cannot help with that", "as an AI language model"],
+
+    // Retry config for slow network
     MAX_RETRIES: 3,
     RETRY_DELAY: 2000,
     REQUEST_TIMEOUT: 30000
+};
+
+// ═══════════════════════════════════════
+// FIREBASE INITIALIZATION
+// ═══════════════════════════════════════
+var firebaseConfig = {
+    apiKey: CONFIG.FIREBASE_API_KEY,
+    authDomain: CONFIG.FIREBASE_AUTH_DOMAIN,
+    projectId: CONFIG.FIREBASE_PROJECT_ID,
+    storageBucket: CONFIG.FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: CONFIG.FIREBASE_MESSAGING_SENDER_ID,
+    appId: CONFIG.FIREBASE_APP_ID
 };
 
 console.log("🚀 Starting Intellector...");
@@ -60,6 +63,25 @@ var currentUser = null;
 var currentChatId = null;
 var isBusy = false;
 var conversationHistory = []; // Store conversation context
+
+// ═══════════════════════════════════════
+// WAKE UP BACKEND (Render free tier sleeps)
+// ═══════════════════════════════════════
+(function wakeUpBackend() {
+    if (CONFIG.BACKEND_URL) {
+        console.log("⏳ Waking up backend server...");
+        fetch(CONFIG.BACKEND_URL + "/health")
+            .then(function (res) {
+                return res.json();
+            })
+            .then(function () {
+                console.log("✅ Backend is awake and ready");
+            })
+            .catch(function () {
+                console.log("⏳ Backend is starting up... (first request may be slow)");
+            });
+    }
+})();
 
 // ═══════════════════════════════════════
 // AUTH STATE LISTENER
@@ -108,7 +130,7 @@ auth.onAuthStateChanged(function (user) {
 // GOOGLE LOGIN
 // ═══════════════════════════════════════
 function googleLogin() {
-    console.log("🔐 Starting Google login...");
+    console.log("🔑 Starting Google login...");
     var provider = new firebase.auth.GoogleAuthProvider();
 
     auth.signInWithPopup(provider)
@@ -220,9 +242,11 @@ function loadChatList() {
                     '<button class="chat-list-delete" onclick="event.stopPropagation(); deleteChat(\'' + chat.id + '\')" title="Delete">' +
                     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path></svg>' +
                     '</button>';
+
                 div.onclick = function () {
                     loadChat(chat.id);
                 };
+
                 listEl.appendChild(div);
             });
 
@@ -356,7 +380,6 @@ function sendMessage() {
 
     var input = document.getElementById("messageInput");
     var text = input.value.trim();
-
     if (!text) return;
 
     console.log("📤 Sending message:", text.substring(0, 50) + "...");
@@ -561,15 +584,12 @@ function callGeminiWithRetry(prompt, attempt) {
 }
 
 // ═══════════════════════════════════════
-// CALL GEMINI API (with conversation context)
-// ═══════════════════════════════════════
-// ═══════════════════════════════════════
-// CALL GEMINI API VIA BACKEND (SECURE)
+// CALL GEMINI API VIA SECURE BACKEND
 // ═══════════════════════════════════════
 function callGemini(prompt) {
-    console.log("🤖 Calling Gemini via backend...");
+    console.log("🤖 Calling Gemini via secure backend...");
 
-    // ═══ CHANGED: Call YOUR backend, not Gemini directly ═══
+    // ═══ SECURE: Calls YOUR backend, NOT Gemini directly ═══
     var url = CONFIG.BACKEND_URL + "/api/chat";
 
     // Build contents with full conversation history
@@ -622,40 +642,41 @@ function callGemini(prompt) {
         body: JSON.stringify(body),
         signal: controller.signal
     })
-    .then(function (response) {
-        clearTimeout(timeoutId);
+        .then(function (response) {
+            clearTimeout(timeoutId);
 
-        if (!response.ok) {
-            return response.json().then(function (errData) {
-                throw new Error(errData.error ? errData.error.message : "HTTP " + response.status);
-            });
-        }
+            if (!response.ok) {
+                return response.json().then(function (errData) {
+                    throw new Error(errData.error ? errData.error.message : "HTTP " + response.status);
+                });
+            }
 
-        return response.json();
-    })
-    .then(function (data) {
-        if (data.error) {
-            throw new Error(data.error.message || "API error");
-        }
+            return response.json();
+        })
+        .then(function (data) {
+            if (data.error) {
+                throw new Error(data.error.message || "API error");
+            }
 
-        if (!data.candidates || data.candidates.length === 0) {
-            throw new Error("No response generated. The content may have been blocked by safety filters.");
-        }
+            if (!data.candidates || data.candidates.length === 0) {
+                throw new Error("No response generated. The content may have been blocked by safety filters.");
+            }
 
-        var text = data.candidates[0].content.parts[0].text;
-        console.log("✅ Response received (" + text.length + " chars)");
-        return text;
-    })
-    .catch(function (error) {
-        clearTimeout(timeoutId);
+            var text = data.candidates[0].content.parts[0].text;
+            console.log("✅ Gemini response received (" + text.length + " chars)");
+            return text;
+        })
+        .catch(function (error) {
+            clearTimeout(timeoutId);
 
-        if (error.name === 'AbortError') {
-            throw new Error("Request timed out. The network may be slow.");
-        }
+            if (error.name === 'AbortError') {
+                throw new Error("Request timed out. The network may be slow.");
+            }
 
-        throw error;
-    });
+            throw error;
+        });
 }
+
 // ═══════════════════════════════════════
 // UI HELPERS
 // ═══════════════════════════════════════
@@ -675,7 +696,6 @@ function appendMessage(role, content, isHtml) {
 
     var nameText = role === "user" ? (currentUser ? currentUser.name : "You") : "Intellector";
     var bodyContent = isHtml ? content : "<p>" + content + "</p>";
-
     var timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     div.innerHTML =
@@ -737,6 +757,7 @@ function showTyping() {
     var div = document.createElement("div");
     div.className = "message ai";
     div.id = "typingIndicator";
+
     div.innerHTML =
         '<div class="message-inner">' +
         '<div class="message-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg></div>' +
@@ -878,7 +899,7 @@ function convertMarkdown(text) {
     });
     html = html.replace(/(<tr>.*<\/tr>\n?)+/g, '<div class="table-wrapper"><table>$&</table></div>');
 
-    // Line breaks — convert double newlines to paragraph breaks, single to <br>
+    // Line breaks
     html = html.replace(/\n\n/g, '</p><p>');
     html = html.replace(/\n/g, '<br>');
 
@@ -921,6 +942,7 @@ function copyCode(btn) {
         textarea.select();
         document.execCommand('copy');
         document.body.removeChild(textarea);
+
         btn.classList.add('copied');
         setTimeout(function () {
             btn.classList.remove('copied');
@@ -977,7 +999,7 @@ function quickStart(text) {
 }
 
 // ═══════════════════════════════════════
-// THEME TOGGLE (bonus)
+// THEME TOGGLE
 // ═══════════════════════════════════════
 function toggleTheme() {
     document.body.classList.toggle('light-theme');
@@ -993,4 +1015,4 @@ function toggleTheme() {
     }
 })();
 
-console.log("✅ Intellector app.js loaded (v2.0 — Enhanced)");
+console.log("✅ Intellector app.js loaded (v3.0 — Secure Backend)");
