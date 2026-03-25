@@ -13,9 +13,13 @@ var CONFIG = {
     FIREBASE_STORAGE_BUCKET: "intellector-8cf2d.firebasestorage.app",
     FIREBASE_MESSAGING_SENDER_ID: "381231220205",
     FIREBASE_APP_ID: "1:381231220205:web:397c5bb41c20b7b503d3e4",
-    GEMINI_API_KEY: "AIzaSyDR_LoETO7sxXvZDrvkHBWwGefZagi5c38",
 
-    // ═══ CUSTOM RULES — Edit these to control AI behavior ═══
+    // ═══ REMOVED: No more Gemini API key in frontend! ═══
+    // GEMINI_API_KEY: "..." ← DELETE THIS LINE
+
+    // ═══ NEW: Your backend URL ═══
+    BACKEND_URL: "https://intellector-backend.onrender.com",
+
     SYSTEM_PROMPT: `You are Intellector, an advanced AI academic assistant built as a college innovation project.
 
 RULES YOU MUST FOLLOW:
@@ -30,25 +34,10 @@ RULES YOU MUST FOLLOW:
 9. Format lists and comparisons as tables when appropriate.
 10. Always end complex explanations with a brief summary.`,
 
-    // Response verification keywords — if response contains these, flag it
     BLOCKED_KEYWORDS: ["I cannot help with that", "as an AI language model"],
-
-    // Retry config for slow network
     MAX_RETRIES: 3,
     RETRY_DELAY: 2000,
     REQUEST_TIMEOUT: 30000
-};
-
-// ═══════════════════════════════════════
-// FIREBASE INITIALIZATION
-// ═══════════════════════════════════════
-var firebaseConfig = {
-    apiKey: CONFIG.FIREBASE_API_KEY,
-    authDomain: CONFIG.FIREBASE_AUTH_DOMAIN,
-    projectId: CONFIG.FIREBASE_PROJECT_ID,
-    storageBucket: CONFIG.FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: CONFIG.FIREBASE_MESSAGING_SENDER_ID,
-    appId: CONFIG.FIREBASE_APP_ID
 };
 
 console.log("🚀 Starting Intellector...");
@@ -574,10 +563,14 @@ function callGeminiWithRetry(prompt, attempt) {
 // ═══════════════════════════════════════
 // CALL GEMINI API (with conversation context)
 // ═══════════════════════════════════════
+// ═══════════════════════════════════════
+// CALL GEMINI API VIA BACKEND (SECURE)
+// ═══════════════════════════════════════
 function callGemini(prompt) {
-    console.log("🤖 Calling Gemini API...");
+    console.log("🤖 Calling Gemini via backend...");
 
-    var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + CONFIG.GEMINI_API_KEY;
+    // ═══ CHANGED: Call YOUR backend, not Gemini directly ═══
+    var url = CONFIG.BACKEND_URL + "/api/chat";
 
     // Build contents with full conversation history
     var contents = [];
@@ -629,37 +622,40 @@ function callGemini(prompt) {
         body: JSON.stringify(body),
         signal: controller.signal
     })
-        .then(function (response) {
-            clearTimeout(timeoutId);
-            if (!response.ok) {
-                return response.json().then(function (errData) {
-                    throw new Error(errData.error ? errData.error.message : "HTTP " + response.status);
-                });
-            }
-            return response.json();
-        })
-        .then(function (data) {
-            if (data.error) {
-                throw new Error(data.error.message || "Gemini API error");
-            }
+    .then(function (response) {
+        clearTimeout(timeoutId);
 
-            if (!data.candidates || data.candidates.length === 0) {
-                throw new Error("No response generated. The content may have been blocked by safety filters.");
-            }
+        if (!response.ok) {
+            return response.json().then(function (errData) {
+                throw new Error(errData.error ? errData.error.message : "HTTP " + response.status);
+            });
+        }
 
-            var text = data.candidates[0].content.parts[0].text;
-            console.log("✅ Gemini response received (" + text.length + " chars)");
-            return text;
-        })
-        .catch(function (error) {
-            clearTimeout(timeoutId);
-            if (error.name === 'AbortError') {
-                throw new Error("Request timed out. The network may be slow.");
-            }
-            throw error;
-        });
+        return response.json();
+    })
+    .then(function (data) {
+        if (data.error) {
+            throw new Error(data.error.message || "API error");
+        }
+
+        if (!data.candidates || data.candidates.length === 0) {
+            throw new Error("No response generated. The content may have been blocked by safety filters.");
+        }
+
+        var text = data.candidates[0].content.parts[0].text;
+        console.log("✅ Response received (" + text.length + " chars)");
+        return text;
+    })
+    .catch(function (error) {
+        clearTimeout(timeoutId);
+
+        if (error.name === 'AbortError') {
+            throw new Error("Request timed out. The network may be slow.");
+        }
+
+        throw error;
+    });
 }
-
 // ═══════════════════════════════════════
 // UI HELPERS
 // ═══════════════════════════════════════
